@@ -1,0 +1,92 @@
+import json
+from urllib.request import urlopen
+import pandas as pd
+from csv import writer
+import csv
+
+
+
+with urlopen("https://www.cia.gov/the-world-factbook/page-data/field/political-parties-and-leaders/page-data.json") as response:
+    source = response.read()
+json_data = json.loads(source)
+
+
+#print(json.dumps(data,indent=3))
+political_parties_json_string = json_data["result"]["data"]["page"]["json"].replace("\"", '"')
+pp_json_data = json.loads(political_parties_json_string)
+party_aka = ""
+
+with open('products.csv','w',newline='',encoding='utf8') as f:
+    thewriter = writer(f)
+    header = ['country_name','Party_Name','Party_known_As','party_leader_name']
+    thewriter.writerow(header)
+
+
+    for country_data in pp_json_data["countries"]:
+        country_name = country_data["name"]
+        #print(country_name)
+        party_name = country_data["data"]
+
+        if "<br />" in party_name:
+            parties = party_name.split("<br />")
+            #print(parties)
+            #print(count(parties))
+            for party in parties:
+                if party != "":
+                    party = party.replace("[[", "[").replace("]]", "]").replace("<p>","").strip()
+                    if " or " in party:
+                        party_id = party.split(" or ")
+                        party_id1 = party_id[0]
+                        if "[" in party_id[1]:
+                            party_id2 = party_id[1].split("[")
+                            party_aka = party_id2[0]
+                            party_leader = party_id2[1].split("]")
+                            party_leader_name = party_leader[0]
+                            print("countryName : "+country_name+" partyName : "+party_id1+" party_aka : "+party_aka+" partyLeader : "+party_leader_name)
+                            #print(party_aka)
+                            #print(party_leader_name)
+                            prdinfo1 = [country_name,party_id1,party_aka,party_leader_name]
+                            thewriter.writerow(prdinfo1)
+                    elif " [" in party:
+                        party_idd = party.split(" [")
+                        party_idd1 = party_idd[0]
+                        party_l_n =party_idd[1].split("]")
+                        party_lead_nam = party_l_n[0]
+                        #print(party_idd)
+                        print("countryName : "+country_name+" partyName : "+party_idd1+" partyLeader : "+party_lead_nam)
+                        party_aka = ""
+                        prdinfo2 = [country_name,party_idd1,party_aka,party_lead_nam]
+                        thewriter.writerow(prdinfo2)
+                        #print(party_lead_nam)
+                    else:
+                        print("countryName : "+country_name+" partyName : "+party)
+                        party_aka = ""
+                        party_lead_nam = ""
+                        prdinfo3 = [country_name,party,party_aka,party_lead_nam]
+                        thewriter.writerow(prdinfo3)
+
+        # elif "<br>" in party_name:
+        #     parties = party_name.split("<br />")
+        #     party = parties[0].replace("[[", "[").replace("]]", "]").strip()
+        #     #print(party)
+        #     if party != "":
+        #         if "<br>" in party:
+        #             if "<br><br>" in party:
+        #                 first_part = party.split("<br><br>")[0]
+        #                 second_part = party.split("<br><br>")[1]
+        #             else:
+        #                 first_part = party.split("<br>")[0]
+        #                 second_part = party.split("<br>")[1]           
+        else:
+            party_name = party_name.replace("[[", "[").replace("]]", "]").split("<p>")
+            party_na_me = party_name[0]
+            print("countryName : "+country_name+" partyName : "+party_na_me)
+            party_aka = ""
+            party_lead_nam = ""
+            prdinfo4 = [country_name,party_na_me,party_aka,party_lead_nam]
+            thewriter.writerow(prdinfo4)
+                                    
+
+                    
+        # # prdinfo = [country_name,party_name]
+        # # thewriter.writerow(prdinfo) 
